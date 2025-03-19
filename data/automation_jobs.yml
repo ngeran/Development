@@ -5,3 +5,5 @@ jobs:
     script: "scripts/show_routing.py"
   - name: "Get The Device Facts"
     script: "scripts/get_device_facts.py"
+  - name: "Capture Device Baseline"
+    script: "scripts/baseline.py"
