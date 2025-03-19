@@ -1,0 +1,13 @@
+hosts:
+  routers:
+  - function: router
+    host_ip: 172.27.200.200
+    host_name: SRX320
+  - function: switch
+    host_ip: 172.27.200.201
+    host_name: SP1DCIBGMPJEX01
+  switches:
+  - function: switch
+    host_ip: 172.27.200.202
+    host_name: SP2DCIBGMPJEX01
+servicenow_change_number: CHG0123456

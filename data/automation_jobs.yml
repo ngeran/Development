@@ -1,0 +1,7 @@
+jobs:
+  - name: "Backup Device Configuration"
+    script: "scripts/backup_config.py"
+  - name: "Show Routing Table"
+    script: "scripts/show_routing.py"
+  - name: "Get The Device Facts"
+    script: "scripts/get_device_facts.py"

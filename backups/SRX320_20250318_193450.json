@@ -1,0 +1,587 @@
+{
+    "configuration": {
+        "@": {
+            "xmlns": "http://xml.juniper.net/xnm/1.1/xnm",
+            "junos:changed-seconds": "1742332571",
+            "junos:changed-localtime": "2025-03-18 21:16:11 UTC"
+        },
+        "version": "24.2R1-S2.5",
+        "groups": [
+            {
+                "name": "basic",
+                "system": {
+                    "host-name": "SRX320",
+                    "root-authentication": {
+                        "encrypted-password": "$6$PkA7vUMi$uwFYXquY5xsodND9HLzFRV40/.4.nV/oE15uIOhkI0YHign6YHcHL/jtWO6UJYUoTpRYGhEJQJJkIYblsAevn/"
+                    },
+                    "login": {
+                        "user": [
+                            {
+                                "name": "admin",
+                                "uid": 2000,
+                                "class": "super-user",
+                                "authentication": {
+                                    "encrypted-password": "$6$fl8/GUGb$P5D35A7dtiV9weNeb4Km8sdgxbLJjj78Oc43.pvNFmlVGt5epmX/9COWa2.YT9KaCyd9CcasWx704YyGWr6ym."
+                                }
+                            }
+                        ]
+                    },
+                    "services": {
+                        "netconf": {
+                            "ssh": {}
+                        },
+                        "ssh": {
+                            "sftp-server": [
+                                null
+                            ]
+                        }
+                    },
+                    "name-server": [
+                        {
+                            "name": "8.8.8.8"
+                        }
+                    ]
+                }
+            }
+        ],
+        "apply-groups": [
+            "basic"
+        ],
+        "security": {
+            "address-book": [
+                {
+                    "name": "global",
+                    "address": [
+                        {
+                            "name": "local-net",
+                            "ip-prefix": "172.27.200.0/24"
+                        },
+                        {
+                            "name": "srx-interface",
+                            "ip-prefix": "172.27.200.200/32"
+                        }
+                    ]
+                }
+            ],
+            "screen": {
+                "ids-option": [
+                    {
+                        "name": "untrust-screen",
+                        "icmp": {
+                            "ping-death": [
+                                null
+                            ]
+                        },
+                        "ip": {
+                            "source-route-option": [
+                                null
+                            ],
+                            "tear-drop": [
+                                null
+                            ]
+                        },
+                        "tcp": {
+                            "syn-flood": {
+                                "alarm-threshold": 1024,
+                                "attack-threshold": 200,
+                                "source-threshold": 1024,
+                                "destination-threshold": 2048,
+                                "timeout": 20
+                            },
+                            "land": [
+                                null
+                            ]
+                        }
+                    }
+                ]
+            },
+            "nat": {
+                "source": {
+                    "rule-set": [
+                        {
+                            "name": "trust-to-untrust",
+                            "from": {
+                                "zone": [
+                                    "trust"
+                                ]
+                            },
+                            "to": {
+                                "zone": [
+                                    "untrust"
+                                ]
+                            },
+                            "rule": [
+                                {
+                                    "name": "source-nat-rule",
+                                    "src-nat-rule-match": {
+                                        "source-address": [
+                                            "0.0.0.0/0"
+                                        ]
+                                    },
+                                    "then": {
+                                        "source-nat": {
+                                            "interface": {}
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "policies": {
+                "policy": [
+                    {
+                        "from-zone-name": "trust",
+                        "to-zone-name": "trust",
+                        "policy": [
+                            {
+                                "name": "trust-to-trust",
+                                "match": {
+                                    "source-address": [
+                                        "any"
+                                    ],
+                                    "destination-address": [
+                                        "any"
+                                    ],
+                                    "application": [
+                                        "any"
+                                    ]
+                                },
+                                "then": {
+                                    "permit": {}
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "from-zone-name": "trust",
+                        "to-zone-name": "untrust",
+                        "policy": [
+                            {
+                                "name": "trust-to-untrust",
+                                "match": {
+                                    "source-address": [
+                                        "any"
+                                    ],
+                                    "destination-address": [
+                                        "any"
+                                    ],
+                                    "application": [
+                                        "any"
+                                    ]
+                                },
+                                "then": {
+                                    "permit": {}
+                                }
+                            },
+                            {
+                                "name": "allow-ssh-ping",
+                                "match": {
+                                    "source-address": [
+                                        "local-net"
+                                    ],
+                                    "destination-address": [
+                                        "srx-interface"
+                                    ],
+                                    "application": [
+                                        "junos-ping",
+                                        "junos-ssh"
+                                    ]
+                                },
+                                "then": {
+                                    "permit": {}
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "zones": {
+                "security-zone": [
+                    {
+                        "name": "trust",
+                        "host-inbound-traffic": {
+                            "system-services": [
+                                {
+                                    "name": "all"
+                                }
+                            ],
+                            "protocols": [
+                                {
+                                    "name": "all"
+                                }
+                            ]
+                        },
+                        "interfaces": [
+                            {
+                                "name": "irb.0"
+                            },
+                            {
+                                "name": "ge-0/0/0.0"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "untrust",
+                        "screen": "untrust-screen",
+                        "interfaces": [
+                            {
+                                "name": "dl0.0",
+                                "host-inbound-traffic": {
+                                    "system-services": [
+                                        {
+                                            "name": "tftp"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "interfaces": {
+            "interface": [
+                {
+                    "name": "ge-0/0/0",
+                    "description": "Vector-net",
+                    "unit": [
+                        {
+                            "name": 0,
+                            "family": {
+                                "inet": {
+                                    "address": [
+                                        {
+                                            "name": "172.27.200.200/24"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ge-0/0/1",
+                    "unit": [
+                        {
+                            "name": 0,
+                            "family": {
+                                "ethernet-switching": {
+                                    "vlan": {
+                                        "members": [
+                                            "vlan-trust"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ge-0/0/2",
+                    "unit": [
+                        {
+                            "name": 0,
+                            "family": {
+                                "ethernet-switching": {
+                                    "vlan": {
+                                        "members": [
+                                            "vlan-trust"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ge-0/0/3",
+                    "unit": [
+                        {
+                            "name": 0,
+                            "family": {
+                                "ethernet-switching": {
+                                    "vlan": {
+                                        "members": [
+                                            "vlan-trust"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ge-0/0/4",
+                    "unit": [
+                        {
+                            "name": 0,
+                            "family": {
+                                "ethernet-switching": {
+                                    "vlan": {
+                                        "members": [
+                                            "vlan-trust"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ge-0/0/5",
+                    "unit": [
+                        {
+                            "name": 0,
+                            "family": {
+                                "ethernet-switching": {
+                                    "vlan": {
+                                        "members": [
+                                            "vlan-trust"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ge-0/0/6",
+                    "unit": [
+                        {
+                            "name": 0,
+                            "family": {
+                                "ethernet-switching": {
+                                    "vlan": {
+                                        "members": [
+                                            "vlan-trust"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ge-0/0/7",
+                    "unit": [
+                        {
+                            "name": 0,
+                            "family": {
+                                "inet": {
+                                    "dhcp": {
+                                        "vendor-id": "Juniper-srx320"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "cl-1/0/0",
+                    "dialer-options": {
+                        "pool": [
+                            {
+                                "name": "1",
+                                "priority": 100
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "dl0",
+                    "unit": [
+                        {
+                            "name": 0,
+                            "family": {
+                                "inet": {
+                                    "negotiate-address": [
+                                        null
+                                    ]
+                                },
+                                "inet6": {
+                                    "negotiate-address": [
+                                        null
+                                    ]
+                                }
+                            },
+                            "dialer-options": {
+                                "pool": "1",
+                                "dial-string": [
+                                    "1234"
+                                ],
+                                "always-on": [
+                                    null
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "irb",
+                    "unit": [
+                        {
+                            "name": 0,
+                            "family": {
+                                "inet": {
+                                    "address": [
+                                        {
+                                            "name": "192.168.1.1/24"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "lo0",
+                    "unit": [
+                        {
+                            "name": 0,
+                            "family": {
+                                "inet": {
+                                    "address": [
+                                        {
+                                            "name": "10.100.100.1/24"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "firewall": {
+            "filter": [
+                {
+                    "name": "ALLOW-ALL",
+                    "term": [
+                        {
+                            "name": "allow-ping",
+                            "from": {
+                                "protocol": [
+                                    "icmp"
+                                ]
+                            },
+                            "then": {
+                                "accept": [
+                                    null
+                                ]
+                            }
+                        },
+                        {
+                            "name": "allow-ssh",
+                            "from": {
+                                "protocol": [
+                                    "tcp"
+                                ],
+                                "port": [
+                                    "22"
+                                ]
+                            },
+                            "then": {
+                                "accept": [
+                                    null
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "access": {
+            "address-assignment": {
+                "pool": [
+                    {
+                        "name": "junosDHCPPool",
+                        "family": {
+                            "inet": {
+                                "network": "192.168.1.0/24",
+                                "range": [
+                                    {
+                                        "name": "junosRange",
+                                        "low": "192.168.1.2",
+                                        "high": "192.168.1.254"
+                                    }
+                                ],
+                                "dhcp-attributes": {
+                                    "router": [
+                                        {
+                                            "name": "192.168.1.1"
+                                        }
+                                    ],
+                                    "propagate-settings": "ge-0/0/0.0"
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "vlans": {
+            "vlan": [
+                {
+                    "name": "vlan-trust",
+                    "vlan-id": 3,
+                    "l3-interface": "irb.0"
+                }
+            ]
+        },
+        "protocols": {
+            "bgp": {
+                "group": [
+                    {
+                        "name": "EXTERNAL",
+                        "type": "external",
+                        "local-address": "192.168.1.1",
+                        "neighbor": [
+                            {
+                                "name": "192.168.1.2",
+                                "peer-as": "65002"
+                            },
+                            {
+                                "name": "192.168.1.3",
+                                "peer-as": "65003"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "l2-learning": {
+                "global-mode": "switching"
+            },
+            "rstp": {
+                "interface": [
+                    {
+                        "name": "all"
+                    }
+                ]
+            }
+        },
+        "poe": {
+            "interface": [
+                {
+                    "name": "all"
+                }
+            ]
+        },
+        "routing-options": {
+            "autonomous-system": {
+                "as-number": "64710"
+            },
+            "static": {
+                "route": [
+                    {
+                        "name": "0.0.0.0/0",
+                        "next-hop": [
+                            "172.27.200.1"
+                        ]
+                    }
+                ]
+            }
+        }
+    }
+}
