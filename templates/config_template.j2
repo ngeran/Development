@@ -1,0 +1,3 @@
+set system host-name {{ hostname }}
+set interfaces {{ interface }} unit 0 description "{{ description }}"
+set protocols ospf area {{ ospf_area }} interface {{ interface }} metric {{ ospf_metric }}

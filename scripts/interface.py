@@ -1,5 +1,8 @@
 import os  # For file and directory operations
 import sys  # For modifying sys.path to import connect_to_hosts
+from jnpr.junos.utils.config import Config  # PyEZ Config class for managing configurations
+
+# Adjust sys.path to include the scripts directory where connect_to_hosts.py resides
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  # Directory of this script (scripts/)
 if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)  # Add scripts/ to sys.path for importing
@@ -62,14 +65,14 @@ def process_interface(dev, action):
                 # Load and apply config
                 config.load("\n".join(config_commands), format='set')
                 print(f"Configuration diff:\n{config.diff()}")
-                config.commit(comment=f"{action} interface {interface} via interface.py")
+                config.commit(comment=f"{action} interface {interface} via interface.py", timeout=60)  # Increased timeout
                 print(f"Interface {interface} {action}d successfully")
 
             elif action == "delete":
                 # Delete interface config
                 config.load(f"delete interfaces {interface}", format='set')
                 print(f"Configuration diff:\n{config.diff()}")
-                config.commit(comment=f"Deleted interface {interface} via interface.py")
+                config.commit(comment=f"Deleted interface {interface} via interface.py", timeout=60)  # Increased timeout
                 print(f"Interface {interface} deleted successfully")
 
             elif action == "description":
@@ -77,7 +80,7 @@ def process_interface(dev, action):
                 description = input(f"Enter description for {interface}: ").strip()
                 config.load(f"set interfaces {interface} description \"{description}\"", format='set')
                 print(f"Configuration diff:\n{config.diff()}")
-                config.commit(comment=f"Set description for {interface} via interface.py")
+                config.commit(comment=f"Set description for {interface} via interface.py", timeout=60)  # Increased timeout
                 print(f"Interface {interface} description updated successfully")
 
             # Unlock config after changes
