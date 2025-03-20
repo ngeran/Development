@@ -7,3 +7,5 @@ jobs:
     script: "scripts/get_device_facts.py"
   - name: "Capture Device Baseline"
     script: "scripts/baseline.py"
+  - name: "Generate and Apply Configuration"
+    script: "scripts/generator.py"
