@@ -1,0 +1,46 @@
+bgp:
+  summary:
+  - peer_address: 192.168.1.2
+    peer_as: '65002'
+    state: Idle
+    up_time: '33:04'
+  - peer_address: 192.168.1.3
+    peer_as: '65003'
+    state: Idle
+    up_time: '33:04'
+general_info:
+  environmental:
+    cpu_load: N/A
+    temperature: 41 degrees C / 105 degrees F
+  error: 'RpcError(severity: error, bad_element: get-power-information, message: syntax
+    error)'
+  facts:
+    hostname: SRX320
+    model: SRX320-POE
+    serial_number: CX1923AN0400
+    version: 24.2R1-S2.5
+  routing_table:
+  - destination: 0.0.0.0/0
+    next_hop: 172.27.200.1
+    protocol: Static
+  - destination: 10.100.100.0/24
+    next_hop: N/A
+    protocol: Direct
+  - destination: 10.100.100.1/32
+    next_hop: N/A
+    protocol: Local
+  - destination: 172.27.200.0/24
+    next_hop: N/A
+    protocol: Direct
+  - destination: 172.27.200.200/32
+    next_hop: N/A
+    protocol: Local
+  - destination: 192.168.1.1/32
+    next_hop: N/A
+    protocol: Local
+interfaces:
+  error: 'RpcError(severity: error, bad_element: terse, message: syntax error, expecting
+    <filter type="subtree"> or <filter type="subtree" />)'
+ospf:
+  interfaces: No OSPF interfaces
+  neighbors: No OSPF neighbors

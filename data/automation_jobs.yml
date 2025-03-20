@@ -9,3 +9,7 @@ jobs:
     script: "scripts/baseline.py"
   - name: "Generate and Apply Configuration"
     script: "scripts/generator.py"
+  - name: "Interface Actions"
+    script: "scripts/interface.py"
+  - name: "Protocol Actions"
+    script: "scripts/protocols.py"
