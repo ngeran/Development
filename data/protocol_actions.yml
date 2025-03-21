@@ -1,0 +1,17 @@
+actions:
+  - protocol: 'bgp'
+    local_as: '64710'
+    peer_as:
+      - 64711
+    peer_ip:
+      - 10.255.100.2
+    advertised_subnet:
+      - 10.0.1.0/24
+      - 10.0.2.0/24
+      - 10.0.3.0/24
+    received_subnets:
+      - 100.94.26.0/24
+      - 100.94.27.0/24
+  - protocol: 'ospf'
+    area: '0'
+    neighbor_ip: '10.255.100.6'
