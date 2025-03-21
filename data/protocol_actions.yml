@@ -1,5 +1,7 @@
 actions:
   - protocol: 'bgp'
+    action: 'add'
+    group_name: 'BASEMENT'
     local_as: '64710'
     peer_as:
       - 64711
@@ -13,5 +15,6 @@ actions:
       - 100.94.26.0/24
       - 100.94.27.0/24
   - protocol: 'ospf'
+    action: 'add'
     area: '0'
     neighbor_ip: '10.255.100.6'
