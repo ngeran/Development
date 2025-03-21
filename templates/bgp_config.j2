@@ -1,44 +1,37 @@
 {# Jinja2 template for BGP configuration on Junos devices #}
 
 {% if action == 'add' %}
-  {# Configure BGP group when adding #}
-  set protocols bgp group {{ group_name }} local-as {{ local_as }}  {# Set local AS for the BGP group #}
-  set protocols bgp group {{ group_name }} type external  {# Define group as external BGP (eBGP) #}
-
-  {# Configure neighbors by zipping peer_ip and peer_as lists #}
-  {% for peer_ip, peer_as in zip(peer_ip, peer_as) %}
-    set protocols bgp group {{ group_name }} neighbor {{ peer_ip }} peer-as {{ peer_as }}  {# Add each peer with its AS #}
+  set protocols bgp group {{ group_name }} local-as {{ local_as }}
+  set protocols bgp group {{ group_name }} type external
+  {% for peer_ip, peer_as in peers %}
+    set protocols bgp group {{ group_name }} neighbor {{ peer_ip }} peer-as {{ peer_as }}
   {% endfor %}
 
-  {# Export policy: advertise subnets if provided, otherwise reject #}
   {% if advertised_subnet %}
-    set policy-options policy-statement export_policy term 1 from protocol direct  {# Match directly connected routes #}
+    set policy-options policy-statement export_policy term 1 from protocol direct
     {% for subnet in advertised_subnet %}
-      set policy-options policy-statement export_policy term 1 from route-filter {{ subnet }} exact  {# Allow specific subnets #}
+      set policy-options policy-statement export_policy term 1 from route-filter {{ subnet }} exact
     {% endfor %}
-    set policy-options policy-statement export_policy term 1 then accept  {# Accept matched subnets #}
-    set policy-options policy-statement export_policy term 2 then reject  {# Reject everything else #}
+    set policy-options policy-statement export_policy term 1 then accept
+    set policy-options policy-statement export_policy term 2 then reject
   {% else %}
-    set policy-options policy-statement export_policy term 1 then reject  {# Reject all if no subnets specified #}
+    set policy-options policy-statement export_policy term 1 then reject
   {% endif %}
-  set protocols bgp group {{ group_name }} export export_policy  {# Apply export policy to BGP group #}
+  set protocols bgp group {{ group_name }} export export_policy
 
-  {# Import policy: allow received subnets if provided, otherwise reject #}
   {% if received_subnets %}
-    set policy-options policy-statement import_policy term 1 from protocol bgp  {# Match BGP routes #}
+    set policy-options policy-statement import_policy term 1 from protocol bgp
     {% for subnet in received_subnets %}
-      set policy-options policy-statement import_policy term 1 from route-filter {{ subnet }} exact  {# Allow specific subnets #}
+      set policy-options policy-statement import_policy term 1 from route-filter {{ subnet }} exact
     {% endfor %}
-    set policy-options policy-statement import_policy term 1 then accept  {# Accept matched subnets #}
-    set policy-options policy-statement import_policy term 2 then reject  {# Reject everything else #}
+    set policy-options policy-statement import_policy term 1 then accept
+    set policy-options policy-statement import_policy term 2 then reject
   {% else %}
-    set policy-options policy-statement import_policy term 1 then reject  {# Reject all if no subnets specified #}
+    set policy-options policy-statement import_policy term 1 then reject
   {% endif %}
-  set protocols bgp group {{ group_name }} import import_policy  {# Apply import policy to BGP group #}
-
+  set protocols bgp group {{ group_name }} import import_policy
 {% elif action == 'delete' %}
-  {# Delete BGP group and associated policies when removing #}
-  delete protocols bgp group {{ group_name }}  {# Remove the entire BGP group #}
-  delete policy-options policy-statement export_policy  {# Remove export policy #}
-  delete policy-options policy-statement import_policy  {# Remove import policy #}
+  delete protocols bgp group {{ group_name }}
+  delete policy-options policy-statement export_policy
+  delete policy-options policy-statement import_policy
 {% endif %}
