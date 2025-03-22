@@ -1,7 +1,9 @@
 # Import standard Python libraries for file operations, system paths, timing, YAML parsing, and date formatting
 import os  # For file and directory operations (e.g., path joining)
 import sys  # For modifying sys.path and exiting the script
+import time  # For adding a delay between route table captures
 import yaml  # For parsing the hosts.yml file
+from datetime import datetime  # For timestamping log entries
 from jnpr.junos.exception import RpcError  # Exception class for Junos RPC errors
 
 # Define the directory where this script lives (scripts/)
@@ -19,7 +21,7 @@ except ModuleNotFoundError as e:  # Catch if connect_to_hosts.py is missing
     sys.exit(1)  # Exit with an error code (1 indicates failure)
 
 def load_hosts():
-    """Load hosts and global credentials from hosts.yml."""
+    """Load hosts, credentials, tables, and monitor interval from hosts.yml."""
     file_path = os.path.join(SCRIPT_DIR, "../data/hosts.yml")  # Construct path to hosts.yml in data/
     try:
         with open(file_path, 'r') as f:  # Open the YAML file in read mode
@@ -95,7 +97,15 @@ def compare_routes(initial, updated):
     return changes  # Return the structured changes
 
 def log_changes(changes, dev_info, log_file):
-    """Log route changes to a file with table and protocol breakdown."""
+    """Log only prefix changes to a file with table and protocol breakdown."""
+    # Check if there are any changes to log
+    has_changes = any(any(protos) for protos in changes['new'].values()) or \
+                  any(any(protos) for protos in changes['updated'].values()) or \
+                  any(any(protos) for protos in changes['removed'].values())
+
+    if not has_changes:  # Skip logging if no changes
+        return
+
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Format current time for log entry
     with open(log_file, 'a') as f:  # Open log file in append mode
         f.write(f"\n=== Route Changes at {timestamp} ===\n")  # Write timestamp header
@@ -128,24 +138,19 @@ def log_changes(changes, dev_info, log_file):
                     for change in prefixes:  # List each removed prefix
                         f.write(f"    {change['prefix']} - {change['details']}\n")  # Write prefix and details
 
-        # Check if there were any changes across all tables
-        if not any(any(protos) for protos in changes['new'].values()) and \
-           not any(any(protos) for protos in changes['updated'].values()) and \
-           not any(any(protos) for protos in changes['removed'].values()):
-            f.write("No changes detected across all tables.\n")  # Indicate no activity
-
 def monitor_routes():
-    """Main function to monitor user-specified routing tables over a 30-minute period."""
-    # Load hosts, credentials, and tables from hosts.yml
-    config = load_hosts()  # Get the full YAML config (username, password, tables, hosts)
+    """Monitor routing tables continuously, logging changes based on user-defined interval until interrupted."""
+    # Load hosts, credentials, tables, and monitor interval from hosts.yml
+    config = load_hosts()  # Get the full YAML config (username, password, tables, monitor_interval, hosts)
     if not config or 'hosts' not in config:  # Check if config loaded and has hosts
         print("No hosts loaded. Exiting.")  # Print error if YAML is empty or invalid
         sys.exit(1)  # Exit with error
 
-    # Extract global credentials and tables with defaults if not present
+    # Extract global credentials, tables, and monitor interval with defaults if not present
     username = config.get('username', 'admin')  # Get username from YAML, default to 'admin'
     password = config.get('password', 'manolis1')  # Get password from YAML, default to 'manolis1'
     tables = config.get('tables', ['inet.0'])  # Get tables from YAML, default to ['inet.0'] if missing
+    monitor_interval = config.get('monitor_interval', 1800)  # Get interval in seconds, default to 1800 (30 min)
 
     # Flatten the nested hosts structure (routers and switches) into a single list
     hosts = []  # List to hold all devices
@@ -164,31 +169,38 @@ def monitor_routes():
         sys.exit(0)  # Exit cleanly
 
     # Capture initial routing tables for all devices
-    initial_tables = {}  # Dict to store initial tables: {hostname: {table: {prefix: {protocol, next_hop}}}}
+    initial_tables = {}  # Dict to store baseline tables: {hostname: {table: {prefix: {protocol, next_hop}}}}
     for dev in connections:  # Iterate over connected devices
         hostname = dev.facts.get('hostname', dev._hostname)  # Get hostname or fallback to IP
         initial_tables[hostname] = get_routing_table(dev, tables)  # Store initial tables for specified tables
 
-    # Wait for 30 minutes to allow route changes
-    print(f"Collected initial routing tables for {tables}. Waiting 30 minutes...")  # Inform user of delay and tables
-    time.sleep(1800)  # Sleep for 1800 seconds (30 minutes); use 60 for testing
+    print(f"Initial routing tables captured for {tables}. Monitoring every {monitor_interval} seconds (Ctrl+C to stop)...")  # Inform user
 
     # Prepare log file path and ensure directory exists
     log_file = os.path.join(SCRIPT_DIR, "../logs/route_changes.log")  # Path to log file
     os.makedirs(os.path.dirname(log_file), exist_ok=True)  # Create logs/ directory if it doesn’t exist
 
-    # Capture updated tables, compare, and log changes
-    for dev in connections:  # Iterate over connected devices again
-        hostname = dev.facts.get('hostname', dev._hostname)  # Get hostname or IP
-        dev_info = next((h for h in hosts if h['host_name'] == hostname), {})  # Find device info in flattened hosts list
-        updated_table = get_routing_table(dev, tables)  # Fetch updated tables for specified tables
-        changes = compare_routes(initial_tables[hostname], updated_table)  # Compare initial vs updated
-        log_changes(changes, dev_info, log_file)  # Log the changes to file
-        print(f"Logged changes for {hostname} to {log_file}")  # Confirm logging for this device
+    # Continuous monitoring loop with graceful exit
+    try:
+        while True:  # Run indefinitely until interrupted
+            time.sleep(monitor_interval)  # Wait for user-defined interval
+            for dev in connections:  # Iterate over connected devices
+                hostname = dev.facts.get('hostname', dev._hostname)  # Get hostname or IP
+                updated_table = get_routing_table(dev, tables)  # Fetch current tables
+                changes = compare_routes(initial_tables[hostname], updated_table)  # Compare with baseline
+                dev_info = next((h for h in hosts if h['host_name'] == hostname), {})  # Find device info
+                log_changes(changes, dev_info, log_file)  # Log only if changes exist
+                if any(any(protos) for protos in changes['new'].values()) or \
+                   any(any(protos) for protos in changes['updated'].values()) or \
+                   any(any(protos) for protos in changes['removed'].values()):
+                    print(f"Changes detected for {hostname} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, logged to {log_file}")
+                initial_tables[hostname] = updated_table  # Update baseline for next cycle
 
-    # Clean up connections
-    disconnect_from_hosts(connections)  # Close all SSH sessions
-    print("Monitoring complete. Check route_changes.log for details.")  # Final message
+    except KeyboardInterrupt:  # Catch Ctrl+C
+        print("\nMonitoring stopped by user (Ctrl+C). Cleaning up...")  # Notify user
+        disconnect_from_hosts(connections)  # Close all SSH sessions
+        print("Connections closed. Exiting gracefully. Check route_changes.log for details.")  # Final message
+        sys.exit(0)  # Exit cleanly
 
 # Run the script if executed directly
 if __name__ == "__main__":
