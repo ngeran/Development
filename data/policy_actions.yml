@@ -1,0 +1,3 @@
+policies:
+  - policy_type: 'import'
+    policy_name: 'ADVERTISE_LOOPBACK'

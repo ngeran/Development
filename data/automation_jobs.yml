@@ -1,4 +1,6 @@
 jobs:
+  - name: "Monitor Routing Table"
+    script: "scripts/route_monitor.py"
   - name: "Backup Device Configuration"
     script: "scripts/backup_config.py"
   - name: "Show Routing Table"
