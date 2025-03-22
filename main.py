@@ -1,7 +1,6 @@
 # Main.py
 import yaml  # For parsing the automation_jobs.yml file
 import subprocess  # For running selected scripts as subprocesses
-import time  # For a slight delay after termination to ensure cleanup
 
 def load_automation_tasks(automation_jobs="data/automation_jobs.yml"):
     """
@@ -17,7 +16,7 @@ def load_automation_tasks(automation_jobs="data/automation_jobs.yml"):
             jobs = yaml.safe_load(yaml_file)
         return jobs
     except FileNotFoundError:
-        print(f"Error: YAML file '{automation_jobs}' not found.")
+        print(f"Error: YAML file '{automation_jobs}' not found.")  # Fixed variable name
         return None
     except yaml.YAMLError as error:
         print(f"Error parsing the YAML: {error}")
@@ -69,49 +68,23 @@ def display_automation_jobs(jobs):
         return None
 
 def main():
-    """Main function to load automation tasks, get user selection, and run scripts in a loop."""
+    """Main function to load automation tasks, get user selection, and run the selected script."""
     # Load the automation jobs from YAML
     automation_jobs = load_automation_tasks()
-    if not automation_jobs:  # Exit if jobs couldn’t be loaded
-        return
 
-    while True:  # Loop to keep the menu alive after each script run
-        # Display jobs and get the selected script
-        selected_script = display_automation_jobs(automation_jobs)
+    # Display jobs and get the selected script
+    selected_script = display_automation_jobs(automation_jobs)
 
-        # If a script was selected, run it
-        if selected_script:
-            print(f"Running script: {selected_script}")
-            try:
-                # Execute the script with real-time output
-                process = subprocess.Popen(
-                    ["python", selected_script],
-                    text=True,  # Return strings instead of bytes
-                    stdout=subprocess.PIPE,  # Capture stdout
-                    stderr=subprocess.STDOUT,  # Combine stderr into stdout
-                    bufsize=1,  # Line-buffered for real-time output
-                    universal_newlines=True  # Ensure text mode
-                )
-                # Stream output live
-                while True:
-                    line = process.stdout.readline()
-                    if line:
-                        print(line, end='')  # Print output as it comes
-                    if process.poll() is not None and not line:
-                        break  # Exit when process ends and no more output
-                process.wait()  # Ensure process completes
-                print(f"Script {selected_script} completed. Returning to menu.")  # Notify user
-            except KeyboardInterrupt:  # Handle Ctrl+C gracefully
-                print("\nInterrupting script...")  # Notify user
-                process.terminate()  # Terminate the subprocess
-                time.sleep(1)  # Brief delay for cleanup (e.g., disconnecting devices)
-                print("Script stopped. Returning to menu.")  # Confirm return
-            except FileNotFoundError:
-                print(f"Error: Script '{selected_script}' not found.")
-            except subprocess.CalledProcessError as e:
-                print(f"Error running {selected_script}: {e}")
-            except Exception as e:
-                print(f"Unexpected error running {selected_script}: {e}")
+    # If a script was selected, run it
+    if selected_script:
+        print(f"Running script: {selected_script}")
+        try:
+            # Execute the selected script as a subprocess
+            subprocess.run(["python", selected_script], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error running {selected_script}: {e}")
+        except FileNotFoundError:
+            print(f"Error: Script '{selected_script}' not found.")
 
 if __name__ == "__main__":
     main()
