@@ -1,6 +1,7 @@
 # Main.py
 import yaml  # For parsing the automation_jobs.yml file
 import subprocess  # For running selected scripts as subprocesses
+import time  # For a slight delay after termination to ensure cleanup
 
 def load_automation_tasks(automation_jobs="data/automation_jobs.yml"):
     """
@@ -16,7 +17,7 @@ def load_automation_tasks(automation_jobs="data/automation_jobs.yml"):
             jobs = yaml.safe_load(yaml_file)
         return jobs
     except FileNotFoundError:
-        print(f"Error: YAML file '{automation_jobs}' not found.")  # Fixed variable name
+        print(f"Error: YAML file '{automation_jobs}' not found.")
         return None
     except yaml.YAMLError as error:
         print(f"Error parsing the YAML: {error}")
@@ -74,32 +75,43 @@ def main():
     if not automation_jobs:  # Exit if jobs couldn’t be loaded
         return
 
-    while True:  # Loop to keep showing the menu after each script run
+    while True:  # Loop to keep the menu alive after each script run
         # Display jobs and get the selected script
         selected_script = display_automation_jobs(automation_jobs)
 
-        # If user chose to quit, break the loop
-        if selected_script is None:
-            break
-
         # If a script was selected, run it
-        print(f"Running script: {selected_script}")
-        try:
-            # Execute the selected script as a subprocess, capturing output
-            result = subprocess.run(
-                ["python", selected_script],
-                text=True,  # Return strings instead of bytes
-                capture_output=True  # Capture stdout and stderr
-            )
-            print(result.stdout)  # Print script’s output
-            if result.stderr:  # Print errors if any
-                print(f"Errors from {selected_script}: {result.stderr}")
-        except KeyboardInterrupt:  # Handle Ctrl+C gracefully
-            print("\nScript interrupted by user. Returning to menu.")  # Notify user
-        except FileNotFoundError:
-            print(f"Error: Script '{selected_script}' not found.")  # Handle missing script
-        except Exception as e:
-            print(f"Unexpected error running {selected_script}: {e}")  # Catch other errors
+        if selected_script:
+            print(f"Running script: {selected_script}")
+            try:
+                # Execute the script with real-time output
+                process = subprocess.Popen(
+                    ["python", selected_script],
+                    text=True,  # Return strings instead of bytes
+                    stdout=subprocess.PIPE,  # Capture stdout
+                    stderr=subprocess.STDOUT,  # Combine stderr into stdout
+                    bufsize=1,  # Line-buffered for real-time output
+                    universal_newlines=True  # Ensure text mode
+                )
+                # Stream output live
+                while True:
+                    line = process.stdout.readline()
+                    if line:
+                        print(line, end='')  # Print output as it comes
+                    if process.poll() is not None and not line:
+                        break  # Exit when process ends and no more output
+                process.wait()  # Ensure process completes
+                print(f"Script {selected_script} completed. Returning to menu.")  # Notify user
+            except KeyboardInterrupt:  # Handle Ctrl+C gracefully
+                print("\nInterrupting script...")  # Notify user
+                process.terminate()  # Terminate the subprocess
+                time.sleep(1)  # Brief delay for cleanup (e.g., disconnecting devices)
+                print("Script stopped. Returning to menu.")  # Confirm return
+            except FileNotFoundError:
+                print(f"Error: Script '{selected_script}' not found.")
+            except subprocess.CalledProcessError as e:
+                print(f"Error running {selected_script}: {e}")
+            except Exception as e:
+                print(f"Unexpected error running {selected_script}: {e}")
 
 if __name__ == "__main__":
     main()
