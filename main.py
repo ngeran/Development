@@ -68,23 +68,38 @@ def display_automation_jobs(jobs):
         return None
 
 def main():
-    """Main function to load automation tasks, get user selection, and run the selected script."""
+    """Main function to load automation tasks, get user selection, and run scripts in a loop."""
     # Load the automation jobs from YAML
     automation_jobs = load_automation_tasks()
+    if not automation_jobs:  # Exit if jobs couldn’t be loaded
+        return
 
-    # Display jobs and get the selected script
-    selected_script = display_automation_jobs(automation_jobs)
+    while True:  # Loop to keep showing the menu after each script run
+        # Display jobs and get the selected script
+        selected_script = display_automation_jobs(automation_jobs)
 
-    # If a script was selected, run it
-    if selected_script:
+        # If user chose to quit, break the loop
+        if selected_script is None:
+            break
+
+        # If a script was selected, run it
         print(f"Running script: {selected_script}")
         try:
-            # Execute the selected script as a subprocess
-            subprocess.run(["python", selected_script], check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"Error running {selected_script}: {e}")
+            # Execute the selected script as a subprocess, capturing output
+            result = subprocess.run(
+                ["python", selected_script],
+                text=True,  # Return strings instead of bytes
+                capture_output=True  # Capture stdout and stderr
+            )
+            print(result.stdout)  # Print script’s output
+            if result.stderr:  # Print errors if any
+                print(f"Errors from {selected_script}: {result.stderr}")
+        except KeyboardInterrupt:  # Handle Ctrl+C gracefully
+            print("\nScript interrupted by user. Returning to menu.")  # Notify user
         except FileNotFoundError:
-            print(f"Error: Script '{selected_script}' not found.")
+            print(f"Error: Script '{selected_script}' not found.")  # Handle missing script
+        except Exception as e:
+            print(f"Unexpected error running {selected_script}: {e}")  # Catch other errors
 
 if __name__ == "__main__":
     main()
