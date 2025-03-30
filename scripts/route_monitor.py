@@ -134,7 +134,7 @@ def log_changes(changes, dev_info, log_file):
             if changes['removed'][table]:
                 f.write(f"\nRemoved Prefixes in {table}:\n")  # Table-specific header
                 for protocol, prefixes in changes['removed'][table].items():  # Iterate over protocols
-                    f.write(f"  {protocol}: {len(prefixes)} subnets changed\n")  # Write count of changed subnets
+        f.write(f"  {protocol}: {len(prefixes)} subnets changed\n")  # Write count of changed subnets
                     for change in prefixes:  # List each removed prefix
                         f.write(f"    {change['prefix']} - {change['details']}\n")  # Write prefix and details
 
@@ -165,7 +165,7 @@ def monitor_routes():
     # Connect to all devices using credentials
     connections = connect_to_hosts(username=username, password=password)  # Establish SSH connections
     if not connections:  # Check if any connections were successful
-        print("No devices connected. Exiting.")  # Print error if no devices are reachable
+        print("No devices connected. Exiting.")  # Print error if:q no devices are reachable
         sys.exit(0)  # Exit cleanly
 
     # Capture initial routing tables for all devices
