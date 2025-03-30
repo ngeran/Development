@@ -46,7 +46,8 @@ set security zones security-zone untrust interfaces dl0.0 host-inbound-traffic s
 set interfaces ge-0/0/0 description Vector-net
 set interfaces ge-0/0/0 unit 0 family inet address 172.27.200.200/24
 set interfaces ge-0/0/1 unit 0 family ethernet-switching vlan members vlan-trust
-set interfaces ge-0/0/2 unit 0 family ethernet-switching vlan members vlan-trust
+set interfaces ge-0/0/2 description "ETH|ORIMX480PE-1|1G|1G|_|WAN"
+set interfaces ge-0/0/2 unit 0 family inet address 172.27.1.1/30
 set interfaces ge-0/0/3 unit 0 family ethernet-switching vlan members vlan-trust
 set interfaces ge-0/0/4 unit 0 family ethernet-switching vlan members vlan-trust
 set interfaces ge-0/0/5 unit 0 family ethernet-switching vlan members vlan-trust
@@ -60,6 +61,17 @@ set interfaces dl0 unit 0 dialer-options dial-string 1234
 set interfaces dl0 unit 0 dialer-options always-on
 set interfaces irb unit 0 family inet address 192.168.1.1/24
 set interfaces lo0 unit 0 family inet address 10.100.100.1/24
+set policy-options policy-statement export_policy term 1 from protocol direct
+set policy-options policy-statement export_policy term 1 from route-filter 10.0.1.0/24 exact
+set policy-options policy-statement export_policy term 1 from route-filter 10.0.2.0/24 exact
+set policy-options policy-statement export_policy term 1 from route-filter 10.0.3.0/24 exact
+set policy-options policy-statement export_policy term 1 then accept
+set policy-options policy-statement export_policy term 2 then reject
+set policy-options policy-statement import_policy term 1 from protocol bgp
+set policy-options policy-statement import_policy term 1 from route-filter 100.94.26.0/24 exact
+set policy-options policy-statement import_policy term 1 from route-filter 100.94.27.0/24 exact
+set policy-options policy-statement import_policy term 1 then accept
+set policy-options policy-statement import_policy term 2 then reject
 set firewall filter ALLOW-ALL term allow-ping from protocol icmp
 set firewall filter ALLOW-ALL term allow-ping then accept
 set firewall filter ALLOW-ALL term allow-ssh from protocol tcp
@@ -72,10 +84,11 @@ set access address-assignment pool junosDHCPPool family inet dhcp-attributes rou
 set access address-assignment pool junosDHCPPool family inet dhcp-attributes propagate-settings ge-0/0/0.0
 set vlans vlan-trust vlan-id 3
 set vlans vlan-trust l3-interface irb.0
-set protocols bgp group EXTERNAL type external
-set protocols bgp group EXTERNAL local-address 192.168.1.1
-set protocols bgp group EXTERNAL neighbor 192.168.1.2 peer-as 65002
-set protocols bgp group EXTERNAL neighbor 192.168.1.3 peer-as 65003
+set protocols bgp group BASEMENT type external
+set protocols bgp group BASEMENT import import_policy
+set protocols bgp group BASEMENT export export_policy
+set protocols bgp group BASEMENT local-as 64710
+set protocols bgp group BASEMENT neighbor 10.255.100.2 peer-as 64711
 set protocols l2-learning global-mode switching
 set protocols rstp interface all
 set poe interface all

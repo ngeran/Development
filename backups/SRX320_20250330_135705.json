@@ -2,8 +2,8 @@
     "configuration": {
         "@": {
             "xmlns": "http://xml.juniper.net/xnm/1.1/xnm",
-            "junos:changed-seconds": "1742424552",
-            "junos:changed-localtime": "2025-03-19 22:49:12 UTC"
+            "junos:changed-seconds": "1743358447",
+            "junos:changed-localtime": "2025-03-30 18:14:07 UTC"
         },
         "version": "24.2R1-S2.5",
         "groups": [
@@ -280,16 +280,17 @@
                 },
                 {
                     "name": "ge-0/0/2",
+                    "description": "ETH|ORIMX480PE-1|1G|1G|_|WAN",
                     "unit": [
                         {
                             "name": 0,
                             "family": {
-                                "ethernet-switching": {
-                                    "vlan": {
-                                        "members": [
-                                            "vlan-trust"
-                                        ]
-                                    }
+                                "inet": {
+                                    "address": [
+                                        {
+                                            "name": "172.27.1.1/30"
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -454,6 +455,96 @@
                 }
             ]
         },
+        "policy-options": {
+            "policy-statement": [
+                {
+                    "name": "export_policy",
+                    "term": [
+                        {
+                            "name": "1",
+                            "from": {
+                                "protocol": [
+                                    "direct"
+                                ],
+                                "route-filter": [
+                                    {
+                                        "address": "10.0.1.0/24",
+                                        "exact": [
+                                            null
+                                        ]
+                                    },
+                                    {
+                                        "address": "10.0.2.0/24",
+                                        "exact": [
+                                            null
+                                        ]
+                                    },
+                                    {
+                                        "address": "10.0.3.0/24",
+                                        "exact": [
+                                            null
+                                        ]
+                                    }
+                                ]
+                            },
+                            "then": {
+                                "accept": [
+                                    null
+                                ]
+                            }
+                        },
+                        {
+                            "name": "2",
+                            "then": {
+                                "reject": [
+                                    null
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "import_policy",
+                    "term": [
+                        {
+                            "name": "1",
+                            "from": {
+                                "protocol": [
+                                    "bgp"
+                                ],
+                                "route-filter": [
+                                    {
+                                        "address": "100.94.26.0/24",
+                                        "exact": [
+                                            null
+                                        ]
+                                    },
+                                    {
+                                        "address": "100.94.27.0/24",
+                                        "exact": [
+                                            null
+                                        ]
+                                    }
+                                ]
+                            },
+                            "then": {
+                                "accept": [
+                                    null
+                                ]
+                            }
+                        },
+                        {
+                            "name": "2",
+                            "then": {
+                                "reject": [
+                                    null
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
         "firewall": {
             "filter": [
                 {
@@ -534,17 +625,21 @@
             "bgp": {
                 "group": [
                     {
-                        "name": "EXTERNAL",
+                        "name": "BASEMENT",
                         "type": "external",
-                        "local-address": "192.168.1.1",
+                        "import": [
+                            "import_policy"
+                        ],
+                        "export": [
+                            "export_policy"
+                        ],
+                        "local-as": {
+                            "as-number": "64710"
+                        },
                         "neighbor": [
                             {
-                                "name": "192.168.1.2",
-                                "peer-as": "65002"
-                            },
-                            {
-                                "name": "192.168.1.3",
-                                "peer-as": "65003"
+                                "name": "10.255.100.2",
+                                "peer-as": "64711"
                             }
                         ]
                     }

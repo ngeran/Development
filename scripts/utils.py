@@ -2,6 +2,9 @@ import os
 import yaml
 import jinja2
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATE_DIR = os.path.join(SCRIPT_DIR, '../templates')
+
 def load_yaml(file_path):
     """
     Load a YAML file and return its contents.
@@ -41,7 +44,7 @@ def group_devices(devices, attribute):
         grouped[value].append(device)
     return grouped
 
-def render_template(template_data):
+def render_template(host, template_name):
     """
     Render a Jinja2 template for a single host.
     Args:
@@ -51,23 +54,26 @@ def render_template(template_data):
     Returns:
         str: Rendered configuration, or None if rendering fails
     """
+    if not os.path.exists(TEMPLATE_DIR):
+        print(f"Error: Template directory '{TEMPLATE_DIR} does not exist.")
+        return None
     # Set up the Jinja2 environment to load the template from the 'templates' directory
     env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader(searchpath='../templates')
+        loader=jinja2.FileSystemLoader(TEMPLATE_DIR)
     )
-
     try:
         # Load the Jinja2 template from the 'templates' directory
-        template = env.get_template('interface_template.j2')
+        template = env.get_template(template_name)
     except jinja2.exceptions.TempateNotFound as error:
-        print(f"Error laoding template: {error}")
+        print(f"Error laoding template '{template_name}' in '{TEMPLATE_DIR}': {error}")
         return
 
     # Render the template with the data from the YAML file
-    config = template.render(hosts=template_data)
+    # Pass as list for template compatibility
+    config = template.render(hosts=[host])
 
     # Print the rendered configuration
-    print("\nRendered Configuration:")
+    print(f"\nRendered Configuration for {host['host_name']} using '{template_name}':\n{config}")
     print(config)
 
     return config
