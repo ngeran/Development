@@ -4,6 +4,7 @@ import sys
 import jinja2
 from typing import List
 from jnpr.junos.utils.config import Config
+from jnpr.junos.exception import RpcTimeoutError
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  # Get absolute path of current script's directory
 
@@ -162,10 +163,13 @@ def apply_configuration(username: str, password: str, host_ips: List[str], confi
             configuration = Config(host)
             # Load configuration to the devices
             configuration.load(config, format='set')
+            # Preview Change
             configuration.pdiff()
-            # Commit the changes to the device
-            configuration.commit(comment="Change CHG0123456")
+            # Validate config syntax
+            configuration.commit(comment="Change CHG0123456", timeout=120)
             print(f"Configuration applied to {host.hostname}")
+        except RpcTimeoutError as error:
+            print(f"Timeout during commit to {host.hostname}: {error}")
         except Exception as error:
             print(f"Failed to apply configuration to {host.hostname}: {error}")
 
