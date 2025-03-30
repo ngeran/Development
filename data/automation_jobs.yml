@@ -15,3 +15,5 @@ jobs:
     script: "scripts/interface.py"
   - name: "Protocol Actions"
     script: "scripts/protocols.py"
+  - name: "Configure Interface"
+    script: "script/yaml_parser.py"
