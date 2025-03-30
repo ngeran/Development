@@ -22,3 +22,20 @@ hosts:
         description: 'LO|MLRENGBSMSRX01'
         unit: 0
         ip_address: '10.100.172.1/32'
+  - host_name: 'MLRENGBSMSRX02'
+    host_ip: '172.27.200.201'
+    product_family: 'SRX320'
+    function: 'Firewall'
+    interfaces:
+      - name: 'ge-0/0/3'
+        description: 'ETH|MLRENGBSMSRX02|GE-0/0/4|1G|1G|_|WAN'
+        unit: 0
+        ip_address: '172.27.201.1/24'
+      - name: 'ge-0/0/4'
+        description: 'ETH|MLRENGBSMSRX03|GE-0/0/4|1G|1G|_|WAN'
+        unit: 0
+        ip_address: '172.27.202.1/24'
+      - name: 'lo0'
+        description: 'LO|MLRENGBSMSRX01'
+        unit: 0
+        ip_address: '10.100.172.1/32'

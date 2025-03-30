@@ -1,4 +1,5 @@
 {%- for host in hosts %}
+set apply-groups basic
 set groups basic system host-name {{ host.host_name }}
 {%- for interface in host.interfaces %}
 delete interfaces {{ interface.name}}
