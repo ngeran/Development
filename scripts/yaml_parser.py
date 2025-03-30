@@ -1,55 +1,24 @@
 import os
-import yaml
 import sys
-import jinja2
 from typing import List
 from jnpr.junos.utils.config import Config
 from jnpr.junos.exception import RpcTimeoutError
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  # Get absolute path of current script's directory
+# Get absolute path of current script's directory
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Add SCRIPT_DIR to sys.path if not already present, so we can import local modules
 if SCRIPT_DIR not in sys.path:
-    sys.path.insert(0, SCRIPT_DIR)  # Insert at the start of sys.path for priority
+    # Insert at the start of sys.path for priority
+    sys.path.insert(0, SCRIPT_DIR)
 
-def load_yaml(file_path):
-    """
-    Load a YAML file and return its contents.
-    Args:
-        file_path (str): Path to the YAML file
-    Returns:
-        dict: Parsed YAML data, or None if loading fails
-    """
-    if not os.path.exists(file_path):
-        print(f"Error: File '{file_path}' not found. ")
-        return None
-    try:
-        with open(file_path, 'r') as file:
-            return yaml.safe_load(file)
-    except yaml.YAMLError as error:
-        print(f"Error: Invalid YAML syntax in '{file_path}': {error}")
-        return None
-    except Exception as error:
-        print(f"Unexpected Error loading '{file_path}': {error} ")
-        return None
-
-def group_devices(devices, attribute):
-    """
-    Group devices by a specified attribute (e.g., 'host_location', 'product_family').
-    Args:
-        devices (list): List of device dictionaries
-        attribute (str): Key to group by
-    Returns:
-        dict: Devices grouped by the attribute value
-    """
-    grouped = {}
-    for device in devices:
-        # Default to Unknown if attribute is missing
-        value = device.get(attribute, 'Unknown')
-        if value not in grouped:
-            grouped[value] = []
-        grouped[value].append(device)
-    return grouped
+# Imort for utils and connect_to_hosts
+from utils import load_yaml, render_template
+try:
+    from connect_to_hosts import connet_to_hosts, disconnect_from_hosts
+except ModuleNotFoundError as error:
+    print(f'Error: Could not import connect_to_hosts: {error}')
+    sys.exit(1)
 
 def yaml_parser(file_path="../data/hosts_data.yml"):
     """
@@ -111,28 +80,6 @@ def yaml_parser(file_path="../data/hosts_data.yml"):
     # Call the render_template function and pass the hosts data
     render_template(hosts)
 
-def render_template(template_data):
-# Set up the Jinja2 environment to load the template from the 'templates' directory
-    env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader(searchpath='../templates')
-    )
-
-    try:
-        # Load the Jinja2 template from the 'templates' directory
-        template = env.get_template('interface_template.j2')
-    except jinja2.exceptions.TempateNotFound as error:
-        print(f"Error laoding template: {error}")
-        return
-
-    # Render the template with the data from the YAML file
-    config = template.render(hosts=template_data)
-
-
-    # Print the rendered configuration
-    print("\nRendered Configuration:")
-    print(config)
-
-    return config
 
 def apply_configuration(username: str, password: str, host_ips: List[str], config: str):
     '''Connect to hosts, apply the configuration, and disconnect.'''

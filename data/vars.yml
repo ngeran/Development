@@ -1,5 +1,0 @@
-hostname: SRX320-NEW
-interface: ge-0/0/1
-description: "Link to Core Switch"
-ospf_area: 0.0.0.0
-ospf_metric: 10
