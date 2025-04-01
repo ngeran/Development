@@ -28,14 +28,14 @@ hosts:
     module: 'Firewall'
     interfaces:
       - name: 'ge-0/0/3'
-        description: 'ETH|MLRENGBSMSRX02|GE-0/0/4|1G|1G|_|WAN'
+        description: 'ETH|MLRENGBSMSRX04|GE-0/0/5|1G|1G|_|WAN'
         unit: 0
         ip_address: '172.27.203.1/24'
       - name: 'ge-0/0/4'
-        description: 'ETH|MLRENGBSMSRX03|GE-0/0/4|1G|1G|_|WAN'
+        description: 'ETH|MLRENGBSMSRX05|GE-0/0/6|1G|1G|_|WAN'
         unit: 0
         ip_address: '172.27.204.1/24'
       - name: 'lo0'
-        description: 'LO|MLRENGBSMSRX01'
+        description: 'LO|MLRENGBSMSRX02'
         unit: 0
         ip_address: '10.100.173.1/32'

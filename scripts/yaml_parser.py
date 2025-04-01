@@ -61,6 +61,8 @@ def yaml_parser(file_path=os.path.join(SCRIPT_DIR, "../data/hosts_data.yml")):
     for host in hosts:
         host_name = host['host_name']
         host_ip = host['host_ip']
+        print(f" HOST NAME: {host_name}")
+        print(f"HOST_IP: {host_ip}")
 
         # Collecting interface data for each host
         for interface in host['interfaces']:
@@ -70,10 +72,10 @@ def yaml_parser(file_path=os.path.join(SCRIPT_DIR, "../data/hosts_data.yml")):
             interface_ip = interface['ip_address']
 
             # Print or store the interface data for debugging
-            print(f"  Name: {interface['name']}")
-            print(f"  Description: {interface['description']}")
-            print(f"  Unit: {interface['unit']}")
-            print(f"  IP Address: {interface['ip_address']}")
+            print(f"  Name: {interface_name}")
+            print(f"  Description: {interface_description}")
+            print(f"  Unit: {unit}")
+            print(f"  IP Address: {interface_ip}")
 
             # Add the interface to the list (if further processing needed)
             device_interfaces.append(interface)
@@ -93,6 +95,8 @@ def apply_configuration(username: str, password: str, host_ips: List[str], confi
         # Exit cleanly
         sys.exit(0)
 
+    print(" =========== APPLY CONFIGURATION ========== ")
+    print({config})
     # Apply the configuration to each connected host
     for host in connections:
         try:
