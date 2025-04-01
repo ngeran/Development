@@ -1,8 +1,5 @@
 {%- for host in hosts %}
-set apply-groups basic
-set groups basic system host-name {{ host.host_name }}
 {%- for interface in host.interfaces %}
-delete interfaces {{ interface.name}}
 set interfaces {{ interface.name }} description "{{ interface.description }}"
 set interfaces {{ interface.name }} unit {{ interface.unit }} family inet address {{ interface.ip_address }}
 {%- endfor %}

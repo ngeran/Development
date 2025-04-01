@@ -8,7 +8,7 @@ hosts:
   - host_name: 'MLRENGBSMSRX01'
     host_ip: '172.27.200.200'
     product_family: 'SRX320'
-    function: 'Firewall'
+    module: 'Firewall'
     interfaces:
       - name: 'ge-0/0/3'
         description: 'ETH|MLRENGBSMSRX02|GE-0/0/4|1G|1G|_|WAN'
@@ -25,7 +25,7 @@ hosts:
   - host_name: 'MLRENGBSMSRX02'
     host_ip: '172.27.200.201'
     product_family: 'SRX320'
-    function: 'Firewall'
+    module: 'Firewall'
     interfaces:
       - name: 'ge-0/0/3'
         description: 'ETH|MLRENGBSMSRX02|GE-0/0/4|1G|1G|_|WAN'
