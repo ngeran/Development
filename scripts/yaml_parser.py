@@ -7,7 +7,7 @@ from jnpr.junos.utils.config import Config
 from jnpr.junos.exception import RpcTimeoutError
 
 # Import for utils and connect_to_hosts (your comment)
-from utils import load_yaml, render_template, group_devices
+from utils import load_yaml, render_template, group_devices, check_config
 
 try:
     from connect_to_hosts import connect_to_hosts, disconnect_from_hosts
@@ -96,6 +96,17 @@ def apply_configuration(username: str, password: str, host_ips: List[str], confi
     # Apply the configuration to each connected host (your comment adapted)
     for host in connections:
         try:
+            # Notify user of the config about to be applied
+            print(f"\nConfiguration to be applied to {host.hostname} ({host_ips[0]}):\n{config}")
+
+            # Check config for errors before committing
+            check_passed, check_message = check_config(host, config)
+            print(check_message)
+
+            if not check_passed:
+                print(f"Skipping commit on {host.hostname} due to configuration errors.")
+                continue
+
             configuration = Config(host)
             # Notify user of the config about to be applied (new addition)
             # print(f"\nConfiguration to be applied to {host.hostname} ({host_ips[0]}):\n{config}")
