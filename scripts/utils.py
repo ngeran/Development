@@ -1,6 +1,7 @@
 import os
 import yaml
 import jinja2
+from jnpr.junos.utils.config import Config
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(SCRIPT_DIR, '../templates')
@@ -73,7 +74,35 @@ def render_template(host, template_name):
     config = template.render(hosts=[host])
 
     # Print the rendered configuration
-    print(f"\nRendered Configuration for {host['host_name']} using '{template_name}':\n{config}")
-    print(config)
+    # print(f"\nRendered Configuration for {host['host_name']} using '{template_name}':\n{config}")
+    # print(config)
 
     return config
+
+def check_config(device, config_str):
+    """
+    Check the configuration for errors before committing.
+    Args:
+        device (jnpr.junos.Device): Connected Junos device object
+        config_str (str): Configuration in 'set' format to check
+    Returns:
+        tuple: (bool, str) - (success status, message with diff or error)
+    """
+    try:
+        # Create a Config object for the device
+        config = Config(device)
+
+        # Load the config without committing
+        config.load(config_str, format='set', merge=False)
+
+        # Get the diff (like 'show | compare')
+        diff = config.diff()
+        diff_msg = "No changes to apply." if diff is None else f"Configuration diff:\n{diff}"
+
+        # Run commit check (validate syntax and semantics)
+        if config.commit_check():
+            return True, diff_msg
+        else:
+            return False, "Commit check failed - configuration has error."
+    except Exception as error:
+        return False, f"Error checking configurtion: {error}"

@@ -6,103 +6,114 @@ from typing import List
 from jnpr.junos.utils.config import Config
 from jnpr.junos.exception import RpcTimeoutError
 
-# Import for utils and connect_to_hosts
+# Import for utils and connect_to_hosts (your comment)
 from utils import load_yaml, render_template, group_devices
 
 try:
     from connect_to_hosts import connect_to_hosts, disconnect_from_hosts
 except ModuleNotFoundError as error:
+    # Print error if connect_to_hosts module is missing (your comment adapted)
     print(f'Error: Could not import connect_to_hosts: {error}')
+    # Exit cleanly (your comment adapted)
     sys.exit(1)
 
-# Get absolute path of current script's directory
+# Get absolute path of current script's directory (your comment)
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Add SCRIPT_DIR to sys.path if not already present, so we can import local modules
+# Add SCRIPT_DIR to sys.path if not already present, so we can import local modules (your comment)
 if SCRIPT_DIR not in sys.path:
+    # Insert at the start of sys.path for priority (your comment)
     sys.path.insert(0, SCRIPT_DIR)
 
 def yaml_parser(file_path=os.path.join(SCRIPT_DIR, "../data/hosts_data.yml")):
     """
     Parse a YAML file and process its data flexibly with grouping.
     Args:
-        file_path (str): Path to the YAML file
+        file_path (str): Path to the YAML file (your comment)
     """
-    # Load the YAML data
+    # Load the YAML data (your comment)
     data = load_yaml(file_path)
     if not data:
+        # Print error if YAML loading fails (your comment adapted)
         # print("Failed to load YAML.")
         return None
 
-    # Extract the 'hosts' data from the YAML
+    # Extract the 'hosts' data from the YAML (your comment)
     hosts = data.get('hosts', [])
     if not hosts:
+        # Print error if no hosts are found (your comment adapted)
         # print("No Hosts found in YAML.")
+        # Exit if no hosts are found (your comment adapted)
         return None
 
+    # Print raw data for debugging (your comment - commented out since we’re silencing output)
+    # print("\n=== Top-Level Keys ===")
     username = data.get('username', 'N/A')
     password = data.get('password', 'N/A')
     # tables = data.get('tables', [])
-
-    # Removed debug prints
-    # print("\n=== Top-Level Keys ===")
     # print(f"Username: {username}")
     # print(f"Password: {password}")
     # print(f"Tables: {tables}")
     # for routing_table in data['tables']:
     #     print(f" - {routing_table}")
+
+    # Process 'host' dynamically (your comment - commented out debug prints)
     # print("==== Hosts Data ====")
     # for host in hosts:
     #     host_name = host['host_name']
     #     host_ip = host['host_ip']
     #     print(f" HOST NAME: {host_name}")
     #     print(f"HOST_IP: {host_ip}")
+    #     # Collecting interface data for each host (your comment)
     #     for interface in host['interfaces']:
     #         interface_name = interface['name']
     #         interface_description = interface['description']
     #         unit = interface['unit']
     #         interface_ip = interface['ip_address']
+    #         # Print or store the interface data for debugging (your comment)
     #         print(f"  Name: {interface_name}")
     #         print(f"  Description: {interface_description}")
     #         print(f"  Unit: {unit}")
     #         print(f"  IP Address: {interface_ip}")
 
-    # Return the host data to use it in rendering the template
+    # Return the host data to use it in rendering the template (your comment)
     return {'hosts': hosts, 'username': username, 'password': password}
 
 def apply_configuration(username: str, password: str, host_ips: List[str], config: str):
     """
-    Connect to hosts, apply the configuration, and disconnect.
+    Connect to hosts, apply the configuration, and disconnect. (your comment)
     """
-    # Connect to all devices using credentials and the host_ips
+    # Connect to all devices using credentials and the host_ips (your comment)
     connections = connect_to_hosts(username=username, password=password, host_ips=host_ips)
 
-    # Check if any connections were successful
+    # Check if any connections were successful (your comment)
     if not connections:
+        # Print error if no devices are reachable (your comment)
         # print("No devices connected. Exiting.")
+        # Exit cleanly (your comment)
         sys.exit(0)
 
-    # Removed debug prints
-    # print(f"Applying to IPs: {host_ips}\nConfig:\n{config}")
-
-    # Apply the configuration to each connected host
+    # Apply the configuration to each connected host (your comment adapted)
     for host in connections:
         try:
             configuration = Config(host)
-            # Load configuration to the devices - overwrite to prevent duplicates
+            # Notify user of the config about to be applied (new addition)
+            # print(f"\nConfiguration to be applied to {host.hostname} ({host_ips[0]}):\n{config}")
+            # Load configuration to the devices (your comment) - overwrite to prevent duplicates
             configuration.load(config, format='set', merge=False)
-            # Preview Change - only output we want
-            configuration.pdiff()
-            # Validate config syntax
+            # Preview Change (your comment)
+            # configuration.pdiff()
+            # Validate config syntax (your comment adapted)
             configuration.commit(comment="Change CHG0123456", timeout=120)
+            # Print success message (your comment adapted - commented out for clean output)
             # print(f"Configuration applied to {host.hostname}")
         except RpcTimeoutError as error:
             print(f"Timeout during commit to {host.hostname}: {error}")
-            print(f"Config may have applied; verify on device.")
+            print("Config may have applied; verify on device.")
         except Exception as error:
             print(f"Failed to apply configuration to {host.hostname}: {error}")
 
-    # Disconnect from hosts after applying the configuration
+    # Disconnect from hosts after applying the configuration (your comment)
     disconnect_from_hosts(connections)
 
 def main(filter_by=None, filter_value=None, template_name=None):
