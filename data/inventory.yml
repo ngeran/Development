@@ -1,0 +1,29 @@
+location: DC1
+switches:
+  - host_name: "DC1MX480PE-1"
+    ip_address: "172.27.200.200"
+    vendor: "Juniper"
+  - host_name: "DC1MX480PE-2"
+    ip_address: "172.27.200.220"
+    vendor: "Juniper"
+routers:
+  - host_name: "DC1MX480PE-3"
+    ip_address: "172.27.200.221"
+    vendor: "Juniper"
+  - host_name: "DC1MX480PE-4"
+    ip_address: "172.27.200.222"
+    vendor: "Cisco"
+firewalls:
+  - host_name: "DC1DCI206BPFW1A"
+    ip_address: "172.27.200.223"
+    vendor: "Palo_Alto"
+location: SP1
+switches:
+  - host_name: "SP1DCI106BJEX01"
+    ip_address: "172.27.200.201"
+    vendor: "Juniper"
+location: ORION
+routers:
+  - host_name: "ORIMX480PE-1"
+    ip_address: "172.27.200.203"
+    vendor: "Cisco"

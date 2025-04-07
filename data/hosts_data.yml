@@ -5,37 +5,23 @@ tables:
   - inet.3
   - mpls.0
 hosts:
-  - host_name: 'MLRENGBSMSRX01'
-    host_ip: '172.27.200.200'
-    product_family: 'SRX320'
-    module: 'Firewall'
+  - host_name: "DC1MX480PE-1"
     interfaces:
-      - name: 'ge-0/0/3'
-        description: 'ETH|MLRENGBSMSRX02|GE-0/0/4|1G|1G|_|WAN'
+      - name: "ge-0/0/3"
+        description: "ETH|DC1MX480PE-2|GE-0/0/4|1G|1G|_|WAN"
         unit: 0
-        ip_address: '172.27.201.1/24'
-      - name: 'ge-0/0/4'
-        description: 'ETH|MLRENGBSMSRX03|GE-0/0/4|1G|1G|_|WAN'
+        ip_address: "172.27.201.1/24"
+      - name: "ge-0/0/4"
+        description: "ETH|DC1MX480PE-3|GE-0/0/4|1G|1G|_|WAN"
         unit: 0
-        ip_address: '172.27.202.1/24'
-      - name: 'lo0'
-        description: 'LO|MLRENGBSMSRX01'
-        unit: 0
-        ip_address: '10.100.172.1/32'
-  - host_name: 'MLRENGBSMSRX02'
-    host_ip: '172.27.200.201'
-    product_family: 'SRX320'
-    module: 'Firewall'
+        ip_address: "172.27.202.1/24"
+  - host_name: "SP1DCI106BJEX01"
     interfaces:
-      - name: 'ge-0/0/3'
-        description: 'ETH|MLRENGBSMSRX04|GE-0/0/5|1G|1G|_|WAN'
+      - name: "ge-0/0/3"
+        description: "ETH|SP1DCI106BJEX02|GE-0/0/4|1G|1G|_|WAN"
         unit: 0
-        ip_address: '172.27.203.1/24'
-      - name: 'ge-0/0/4'
-        description: 'ETH|MLRENGBSMSRX05|GE-0/0/6|1G|1G|_|WAN'
+        ip_address: "172.27.203.1/24"
+      - name: "ge-0/0/4"
+        description: "ETH|SP1DCI106BJEX03|GE-0/0/4|1G|1G|_|WAN"
         unit: 0
-        ip_address: '172.27.204.1/24'
-      - name: 'lo0'
-        description: 'LO|MLRENGBSMSRX02'
-        unit: 0
-        ip_address: '10.100.173.1/32'
+        ip_address: "172.27.204.1/24"
