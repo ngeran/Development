@@ -14,7 +14,9 @@ def load_yaml(file_path):
         return None
     try:
         with open(file_path, 'r') as file:
-            return yaml.safe_load(file)
+            raw_content = file.read()
+            print(f"Debug: Raw content of '{file_path}':\n{raw_content}")
+            return yaml.safe_load(raw_content)
     except yaml.YAMLError as error:
         print(f"Error: Invalid YAML syntax in '{file_path}': {error}")
         return None

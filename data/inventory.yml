@@ -1,3 +1,8 @@
+location: SP1
+switches:
+  - host_name: "SP1DCI106BJEX01"
+    ip_address: "172.27.200.201"
+    vendor: "Juniper"
 location: DC1
 switches:
   - host_name: "DC1MX480PE-1"
@@ -17,11 +22,6 @@ firewalls:
   - host_name: "DC1DCI206BPFW1A"
     ip_address: "172.27.200.223"
     vendor: "Palo_Alto"
-location: SP1
-switches:
-  - host_name: "SP1DCI106BJEX01"
-    ip_address: "172.27.200.201"
-    vendor: "Juniper"
 location: ORION
 routers:
   - host_name: "ORIMX480PE-1"
