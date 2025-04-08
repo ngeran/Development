@@ -90,15 +90,14 @@ def merge_host_data(inventory_file, config_file=None):
 def render_template(host_data, template_name):
     """Render a Jinja2 template with host data."""
     from jinja2 import Environment, FileSystemLoader
-    # Set up template directory and environment
     template_dir = os.path.join(os.path.dirname(__file__), '../templates')
     env = Environment(loader=FileSystemLoader(template_dir))
     try:
-        # Load and render the template with host data
         template = env.get_template(template_name)
         return template.render(**host_data)
     except Exception as error:
         print(f"Error rendering template '{template_name}': {error}")
+        print(f"Host data passed: {host_data}")
         return None
 
 def check_config(device, config_str):

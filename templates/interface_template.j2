@@ -1,6 +1,4 @@
-{%- for host in hosts %}
-{%- for interface in host.interfaces %}
+{%- for interface in interfaces %}
 set interfaces {{ interface.name }} description "{{ interface.description }}"
 set interfaces {{ interface.name }} unit {{ interface.unit }} family inet address {{ interface.ip_address }}
-{%- endfor %}
 {%- endfor %}
