@@ -1,6 +1,6 @@
 location: DC1
 switches:
-  - host_name: "DC1MX480PE1"
+  - host_name: "Test1"
     ip_address: "172.27.200.200"
     vendor: "Juniper"
   - host_name: "DC1MX480PE-2"
@@ -25,5 +25,5 @@ switches:
 location: ORION
 routers:
   - host_name: "Test"
-    ip_address: "172.27.200.203"
-    vendor: "Cisco"
+    ip_address: "172.27.200.200"
+    vendor: "Juniper"

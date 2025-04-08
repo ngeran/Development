@@ -5,7 +5,7 @@ tables:
   - inet.3
   - mpls.0
 hosts:
-  - host_name: "DC1MX480PE1"
+  - host_name: "DC1DCI206BPFW1A"
     interfaces:
       - name: "ge-0/0/3"
         description: "ETH|DC1MX480PE-2|GE-0/0/4|1G|1G|_|WAN"
