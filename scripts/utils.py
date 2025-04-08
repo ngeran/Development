@@ -86,23 +86,16 @@ def merge_host_data(inventory_file, config_file=None):
         print(f"Error: Expected 'inventory.yml' to be a list or dict, got {type(inventory_data)}.")
         return None
 
-    # Debug: Show how many location entries we have
-    print(f"Debug: Processing {len(inventory_data)} location entries")
-
-    # Build a flat list of all devices
+    # Build a flat list of all devices from inventory
     all_hosts = []
     for location_dict in inventory_data:
-        # Debug: Show each location being processed
         print(f"Debug: Processing location_dict = {location_dict}")
         if not isinstance(location_dict, dict) or 'location' not in location_dict:
             print("Error: Invalid format in 'inventory.yml' - each entry must have a 'location' key.")
             return None
-        # Loop through device types
         for dev_type in ['switches', 'routers', 'firewalls']:
-            # Debug: Confirm dev_type is defined
             print(f"Debug: Checking dev_type = {dev_type}")
             if dev_type in location_dict:
-                # Debug: Show devices for this type
                 print(f"Debug: Found {len(location_dict[dev_type])} devices in {dev_type}")
                 for dev in location_dict[dev_type]:
                     all_hosts.append({
@@ -113,10 +106,9 @@ def merge_host_data(inventory_file, config_file=None):
                         'vendor': dev.get('vendor', 'Unknown')
                     })
 
-    # Debug: Show total hosts collected
     print(f"Debug: Collected {len(all_hosts)} hosts: {[h['host_name'] for h in all_hosts]}")
 
-    # If no config file, return inventory data with defaults
+    # If no config file, return all inventory hosts (for non-config actions)
     if not config_file:
         return {
             'username': 'admin',
@@ -124,14 +116,14 @@ def merge_host_data(inventory_file, config_file=None):
             'hosts': all_hosts
         }
 
-    # Load and merge config data
+    # Load config file (hosts_data.yml)
     config_data = load_yaml(config_file)
     if not config_data:
         return None
 
-    # Debug: Show config data
     print(f"Debug: Loaded config_data = {config_data}")
 
+    # Only include hosts from inventory that match hosts_data.yml
     host_lookup = {h['host_name']: h for h in all_hosts}
     merged_hosts = []
     for config_host in config_data.get('hosts', []):
@@ -140,8 +132,13 @@ def merge_host_data(inventory_file, config_file=None):
             merged_host = host_lookup[host_name].copy()
             merged_host.update(config_host)
             merged_hosts.append(merged_host)
+        else:
+            print(f"Warning: Host '{host_name}' in hosts_data.yml not found in inventory.yml")
 
-    # Debug: Show merged hosts
+    if not merged_hosts:
+        print("Error: No hosts from hosts_data.yml matched inventory.yml")
+        return None
+
     print(f"Debug: Merged {len(merged_hosts)} hosts: {[h['host_name'] for h in merged_hosts]}")
 
     return {

@@ -63,9 +63,8 @@ def main(locations=None, device_types=None, vendors=None, actions=None):
             print(f"Function {func_name} not found in {module_name}: {error}")
             continue
 
-        # Get host_ips from the filtered hosts (those with config data from hosts_data.yml)
+        # Use all IPs from filtered_hosts, which are tied to hosts_data.yml when config_file is provided
         host_ips = [h['ip_address'] for h in filtered_hosts]
-        # Debug: Show which IPs we’re targeting
         print(f"Debug: Targeting IPs = {host_ips}")
 
         action_func(
