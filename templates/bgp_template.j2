@@ -1,0 +1,5 @@
+set protocols bgp local-as {{ bgp.local_as }}
+{% for peer in bgp.peers %}
+set protocols bgp group external neighbor {{ peer.peer_ip }} peer-as {{ peer.peer_as }}
+set protocols bgp group external neighbor {{ peer.peer_ip }} interface {{ peer.interface }}
+{% endfor %}

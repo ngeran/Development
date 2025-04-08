@@ -1,0 +1,4 @@
+set protocols ldp
+{% for intf in ldp.interfaces %}
+set protocols ldp interface {{ intf.name }}
+{% endfor %}

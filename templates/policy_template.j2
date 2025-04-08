@@ -1,0 +1,4 @@
+set protocols mpls
+{% for intf in mpls.interfaces %}
+set protocols mpls interface {{ intf.name }}
+{% endfor %}

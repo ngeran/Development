@@ -1,0 +1,4 @@
+set protocols rsvp
+{% for intf in rsvp.interfaces %}
+set protocols rsvp interface {{ intf.name }}
+{% endfor %}

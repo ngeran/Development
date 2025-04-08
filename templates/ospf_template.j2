@@ -1,0 +1,4 @@
+set protocols ospf area {{ ospf.area }}
+{% for intf in ospf.interfaces %}
+set protocols ospf area {{ ospf.area }} interface {{ intf.name }} metric {{ intf.metric }}
+{% endfor %}
