@@ -61,7 +61,7 @@ def configure_routing(username, password, host_ips, hosts, connect_to_hosts, dis
             print(f"Routing protocols configured on {dev.hostname}")
         except RpcTimeoutError as error:
             print(f"Timeout during commit to {dev.hostname}: {error}")
-            print(f"Config may have applied; verify on device.")
+            print("Config may have applied; verify on device.")
         except Exception as error:
             print(f"Failed to configure routing protocols on {dev.hostname}: {error}")
 
