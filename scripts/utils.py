@@ -16,7 +16,7 @@ def load_yaml(file_path):
         with open(file_path, 'r') as file:
             raw_content = file.read()
             print(f"Debug: Raw content of '{file_path}':\n{raw_content}")
-            return yaml.safe_load(raw_content)
+            return yaml.load(raw_content, Loader=yaml.SafeLoader)  # Explicit SafeLoader
     except yaml.YAMLError as error:
         print(f"Error: Invalid YAML syntax in '{file_path}': {error}")
         return None
@@ -49,13 +49,12 @@ def render_template(host, template_name):
     return config
 
 def check_config(device, config_str):
-    """Check a configuration string for errors before committing it to a device."""
     try:
         config = Config(device)
         config.load(config_str, format='set', merge=False)
         diff = config.diff()
         diff_msg = "No changes to apply." if diff is None else f"Configuration diff:\n{diff}"
-        if config.commit_check():
+        if config.commit_check(timeout=60):  # Increase to 60 seconds
             return True, diff_msg
         else:
             return False, "Commit check failed - configuration has errors."
@@ -63,24 +62,13 @@ def check_config(device, config_str):
         return False, f"Error checking configuration: {error}"
 
 def merge_host_data(inventory_file, config_file=None):
-    """
-    Combine device info from inventory.yml with optional config data from hosts_data.yml.
-    Args:
-        inventory_file (str): Path to inventory.yml (required)
-        config_file (str, optional): Path to hosts_data.yml (optional, for config tasks)
-    Returns:
-        dict: Contains username, password, and a list of host dictionaries
-    """
-    # Load the inventory file
     inventory_data = load_yaml(inventory_file)
     if not inventory_data:
         return None
-
-    # Debug: Show the path and raw loaded data
     print(f"Debug: Loading from path = {os.path.abspath(inventory_file)}")
     print(f"Debug: Loaded inventory_data = {inventory_data}")
-
-    # Normalize to a list of location dictionaries
+    if 'locations' in inventory_data:
+        inventory_data = inventory_data['locations']  # Extract the list
     if isinstance(inventory_data, dict):
         print("Debug: inventory_data is a dict, wrapping it in a list")
         inventory_data = [inventory_data]
