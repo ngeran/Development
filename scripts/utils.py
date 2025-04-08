@@ -1,138 +1,120 @@
-# scripts/utils.py
 import os
 import yaml
-import jinja2
-from jnpr.junos.utils.config import Config
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-TEMPLATE_DIR = os.path.join(SCRIPT_DIR, '../templates')
 
 def load_yaml(file_path):
     """Load a YAML file and return its contents as a Python object."""
+    # Check if the file exists
     if not os.path.exists(file_path):
         print(f"Error: File '{file_path}' not found.")
         return None
     try:
+        # Open and parse the YAML file safely
         with open(file_path, 'r') as file:
-            raw_content = file.read()
-            print(f"Debug: Raw content of '{file_path}':\n{raw_content}")
-            return yaml.load(raw_content, Loader=yaml.SafeLoader)  # Explicit SafeLoader
+            return yaml.safe_load(file)
     except yaml.YAMLError as error:
+        # Handle YAML syntax errors
         print(f"Error: Invalid YAML syntax in '{file_path}': {error}")
         return None
     except Exception as error:
+        # Catch any unexpected errors during file loading
         print(f"Unexpected Error loading '{file_path}': {error}")
         return None
 
-def group_devices(devices, attribute):
-    """Group a list of devices by a specific attribute (e.g., 'location' or 'vendor')."""
-    grouped = {}
-    for device in devices:
-        value = device.get(attribute, 'Unknown')
-        if value not in grouped:
-            grouped[value] = []
-        grouped[value].append(device)
-    return grouped
-
-def render_template(host, template_name):
-    """Render a Jinja2 template with host data (e.g., to generate config commands)."""
-    if not os.path.exists(TEMPLATE_DIR):
-        print(f"Error: Template directory '{TEMPLATE_DIR}' does not exist.")
-        return None
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR))
-    try:
-        template = env.get_template(template_name)
-    except jinja2.exceptions.TemplateNotFound as error:
-        print(f"Error loading template '{template_name}' in '{TEMPLATE_DIR}': {error}")
-        return None
-    config = template.render(hosts=[host])
-    return config
-
-def check_config(device, config_str):
-    try:
-        config = Config(device)
-        config.load(config_str, format='set', merge=False)
-        diff = config.diff()
-        diff_msg = "No changes to apply." if diff is None else f"Configuration diff:\n{diff}"
-        if config.commit_check(timeout=60):  # Increase to 60 seconds
-            return True, diff_msg
-        else:
-            return False, "Commit check failed - configuration has errors."
-    except Exception as error:
-        return False, f"Error checking configuration: {error}"
-
 def merge_host_data(inventory_file, config_file=None):
+    """Merge host data from inventory.yml and optionally hosts_data.yml."""
+    # Load inventory data
     inventory_data = load_yaml(inventory_file)
     if not inventory_data:
         return None
-    print(f"Debug: Loading from path = {os.path.abspath(inventory_file)}")
-    print(f"Debug: Loaded inventory_data = {inventory_data}")
-    if 'locations' in inventory_data:
-        inventory_data = inventory_data['locations']  # Extract the list
+
+    # Ensure inventory_data is a list (wrap single dict if needed)
     if isinstance(inventory_data, dict):
-        print("Debug: inventory_data is a dict, wrapping it in a list")
         inventory_data = [inventory_data]
     elif not isinstance(inventory_data, list):
         print(f"Error: Expected 'inventory.yml' to be a list or dict, got {type(inventory_data)}.")
         return None
 
-    # Build a flat list of all devices from inventory
+    # Build a list of all hosts from inventory
     all_hosts = []
     for location_dict in inventory_data:
-        print(f"Debug: Processing location_dict = {location_dict}")
+        # Validate each location entry has a 'location' key
         if not isinstance(location_dict, dict) or 'location' not in location_dict:
             print("Error: Invalid format in 'inventory.yml' - each entry must have a 'location' key.")
             return None
+        # Iterate over device types (switches, routers, firewalls)
         for dev_type in ['switches', 'routers', 'firewalls']:
-            print(f"Debug: Checking dev_type = {dev_type}")
             if dev_type in location_dict:
-                print(f"Debug: Found {len(location_dict[dev_type])} devices in {dev_type}")
+                # Add each device to the host list with relevant details
                 for dev in location_dict[dev_type]:
                     all_hosts.append({
                         'host_name': dev['host_name'],
                         'ip_address': dev['ip_address'],
                         'location': location_dict['location'],
-                        'device_type': dev_type[:-1],
-                        'vendor': dev.get('vendor', 'Unknown')
+                        'device_type': dev_type[:-1],  # Remove 's' (e.g., 'switches' -> 'switch')
+                        'vendor': dev.get('vendor', 'Unknown')  # Default to 'Unknown' if vendor missing
                     })
 
-    print(f"Debug: Collected {len(all_hosts)} hosts: {[h['host_name'] for h in all_hosts]}")
+    # If config_file is provided, merge with config data
+    if config_file:
+        config_data = load_yaml(config_file)
+        if not config_data:
+            print("Failed to load host data. Check files for errors.")
+            return None
+        # Extract credentials and host list from config
+        config_hosts = config_data.get('hosts', [])
+        username = config_data.get('username')
+        password = config_data.get('password')
+        if not (username and password):
+            print("Error: 'username' and 'password' must be specified in hosts_data.yml.")
+            return None
 
-    # If no config file, return all inventory hosts (for non-config actions)
-    if not config_file:
-        return {
-            'username': 'admin',
-            'password': 'password',
-            'hosts': all_hosts
-        }
+        # Merge inventory hosts with config hosts where names match
+        merged_hosts = []
+        config_host_names = {host['host_name'] for host in config_hosts}
+        for inv_host in all_hosts:
+            if inv_host['host_name'] in config_host_names:
+                for config_host in config_hosts:
+                    if config_host['host_name'] == inv_host['host_name']:
+                        # Combine inventory and config data for matching hosts
+                        merged_host = inv_host.copy()
+                        merged_host.update(config_host)
+                        merged_hosts.append(merged_host)
+                        break
+            else:
+                print(f"Warning: Host '{inv_host['host_name']}' in inventory.yml not found in hosts_data.yml")
+        return {'username': username, 'password': password, 'hosts': merged_hosts}
 
-    # Load config file (hosts_data.yml)
-    config_data = load_yaml(config_file)
-    if not config_data:
+    # Return just inventory hosts if no config file
+    return {'hosts': all_hosts}
+
+def render_template(host_data, template_name):
+    """Render a Jinja2 template with host data."""
+    from jinja2 import Environment, FileSystemLoader
+    # Set up template directory and environment
+    template_dir = os.path.join(os.path.dirname(__file__), '../templates')
+    env = Environment(loader=FileSystemLoader(template_dir))
+    try:
+        # Load and render the template with host data
+        template = env.get_template(template_name)
+        return template.render(**host_data)
+    except Exception as error:
+        print(f"Error rendering template '{template_name}': {error}")
         return None
 
-    print(f"Debug: Loaded config_data = {config_data}")
-
-    # Only include hosts from inventory that match hosts_data.yml
-    host_lookup = {h['host_name']: h for h in all_hosts}
-    merged_hosts = []
-    for config_host in config_data.get('hosts', []):
-        host_name = config_host['host_name']
-        if host_name in host_lookup:
-            merged_host = host_lookup[host_name].copy()
-            merged_host.update(config_host)
-            merged_hosts.append(merged_host)
+def check_config(device, config_str):
+    """Check if the configuration can be applied to the device."""
+    from jnpr.junos.utils.config import Config
+    try:
+        # Load config into a Config object for validation
+        config = Config(device)
+        config.load(config_str, format='set', merge=False)
+        # Get the diff (changes to apply)
+        diff = config.diff()
+        diff_msg = "No changes to apply." if diff is None else f"Configuration diff:\n{diff}"
+        # Perform a commit check with a 60-second timeout
+        if config.commit_check(timeout=60):
+            return True, diff_msg
         else:
-            print(f"Warning: Host '{host_name}' in hosts_data.yml not found in inventory.yml")
-
-    if not merged_hosts:
-        print("Error: No hosts from hosts_data.yml matched inventory.yml")
-        return None
-
-    print(f"Debug: Merged {len(merged_hosts)} hosts: {[h['host_name'] for h in merged_hosts]}")
-
-    return {
-        'username': config_data.get('username', 'admin'),
-        'password': config_data.get('password', 'password'),
-        'hosts': merged_hosts
-    }
+            return False, "Commit check failed - configuration has errors."
+    except Exception as error:
+        return False, f"Error checking configuration: {error}"
