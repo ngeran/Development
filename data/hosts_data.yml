@@ -5,7 +5,7 @@ tables:
   - inet.3
   - mpls.0
 hosts:
-  - host_name: "DC1DCI206BPFW1A"
+  - host_name: "DC1MX480PE-1"
     interfaces:
       - name: "ge-0/0/3"
         description: "ETH|DC1MX480PE-2|GE-0/0/4|1G|1G|_|WAN"
@@ -25,9 +25,3 @@ hosts:
         description: "ETH|SP1DCI106BJEX03|GE-0/0/4|1G|1G|_|WAN"
         unit: 0
         ip_address: "172.27.204.1/24"
-  - host_name: "Test"
-    interfaces:
-      - name: "ge-0/0/3"
-        description: "ETH|SP1DCI106BJEX02|GE-0/0/4|1G|1G|_|WAN"
-        unit: 0
-        ip_address: "172.27.233.1/24"
