@@ -1,0 +1,6 @@
+Route Monitoring Report - 20250409_182128
+==================================================
+
+Initial capture for SP1DCI106BJEX01 (172.27.200.201) saved to /home/nikos/Development/scripts/../routing/SP1DCI106BJEX01_inet.0_20250409_182128.txt
+
+Initial capture for DC1MX480PE-1 (172.27.200.200) saved to /home/nikos/Development/scripts/../routing/DC1MX480PE-1_inet.0_20250409_182128.txt

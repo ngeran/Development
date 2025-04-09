@@ -1,0 +1,11 @@
+inet.0: 4 destinations, 4 routes (4 active, 0 holddown, 0 hidden)
++ = Active Route, - = Last Active, * = Both
+
+0.0.0.0/0          *[Static/5] 01:41:11
+                    >  to 172.27.200.1 via ge-0/0/0.0
+172.27.200.0/24    *[Direct/0] 01:41:11
+                    >  via ge-0/0/0.0
+172.27.200.200/32  *[Local/0] 01:41:11
+                       Local via ge-0/0/0.0
+192.168.1.1/32     *[Local/0] 01:41:54
+                       Reject
