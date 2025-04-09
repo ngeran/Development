@@ -1,5 +1,6 @@
 username: 'admin'
 password: 'manolis1'
+interval: 300
 tables:
   - inet.0
   - inet.3

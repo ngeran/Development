@@ -1,0 +1,319 @@
+=== Configuration ===
+
+## Last changed: 2025-04-09 15:28:16 EDT
+version 12.1X46-D86;
+groups {
+    basic {
+        system {
+            host-name Vector-SRX210;
+            time-zone America/New_York;
+            root-authentication {
+                encrypted-password "$1$aKoYbCaH$vJuCJ9.FX/JRbCYN6eIRw1";
+            }
+            name-server {
+                8.8.8.8;
+                8.8.4.4;
+            }
+            login {
+                user admin {
+                    uid 2001;
+                    class super-user;
+                    authentication {
+                        encrypted-password "$1$8YjzaFlQ$/IV2NAbvFuPE3qV5BXGjk.";
+                    }
+                }
+            }
+            services {
+                ssh;
+                netconf {
+                    ssh;
+                }
+                web-management {
+                    https {
+                        system-generated-certificate;
+                        interface vlan.0;
+                    }
+                }
+            }
+            ntp {
+                server 132.163.96.5;
+            }
+        }
+    }
+}
+apply-groups basic;
+system {
+    name-server {
+        208.67.222.222;
+        208.67.220.220;
+    }
+}
+interfaces {
+    interface-range INTERFACES-TRUST {
+        member ge-0/0/0;
+        member ge-0/0/1;
+        unit 0 {
+            family ethernet-switching {
+                vlan {
+                    members vlan-trust;
+                }
+            }
+        }
+    }
+    ge-0/0/0 {
+        description "Xfinity Network|PORT:0|WAN";
+        unit 0 {
+            family ethernet-switching {
+                vlan {
+                    members vlan-trust;
+                }
+            }
+        }
+    }
+    ge-0/0/1 {
+        description "Vector-Flex|PORT:5|WAN";
+        unit 0 {
+            family ethernet-switching {
+                vlan {
+                    members vlan-trust;
+                }
+            }
+        }
+    }
+    fe-0/0/2 {
+        unit 0 {
+            family ethernet-switching {
+                vlan {
+                    members vlan-trust;
+                }
+            }
+        }
+    }
+    fe-0/0/3 {
+        unit 0 {
+            family ethernet-switching {
+                vlan {
+                    members vlan-trust;
+                }
+            }
+        }
+    }
+    fe-0/0/4 {
+        unit 0 {
+            family ethernet-switching {
+                vlan {
+                    members vlan-trust;
+                }
+            }
+        }
+    }
+    fe-0/0/5 {
+        unit 0 {
+            family ethernet-switching {
+                vlan {
+                    members vlan-trust;
+                }
+            }
+        }
+    }
+    fe-0/0/6 {
+        unit 0 {
+            family ethernet-switching {
+                vlan {
+                    members vlan-trust;
+                }
+            }
+        }
+    }
+    fe-0/0/7 {
+        unit 0 {
+            family ethernet-switching {
+                vlan {
+                    members vlan-trust;
+                }
+            }
+        }
+    }
+    vlan {
+        unit 0 {
+            family inet {
+                address 172.27.200.201/24;
+            }
+        }
+    }
+}
+routing-options {
+    static {
+        route 0.0.0.0/0 next-hop 172.27.200.1;
+    }
+}
+protocols {
+    stp;
+}
+security {
+    screen {
+        ids-option untrust-screen {
+            icmp {
+                ping-death;
+            }
+            ip {
+                source-route-option;
+                tear-drop;
+            }
+            tcp {
+                syn-flood {
+                    alarm-threshold 1024;
+                    attack-threshold 200;
+                    source-threshold 1024;
+                    destination-threshold 2048;
+                    timeout 20;
+                }
+                land;
+            }
+        }
+    }
+    nat {
+        source {
+            rule-set trust-to-untrust {
+                from zone trust;
+                to zone untrust;
+                rule source-nat-rule {
+                    match {
+                        source-address 0.0.0.0/0;
+                    }
+                    then {
+                        source-nat {
+                            interface;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    policies {
+        from-zone trust to-zone untrust {
+            policy trust-to-untrust {
+                match {
+                    source-address any;
+                    destination-address any;
+                    application any;
+                }
+                then {
+                    permit;
+                }
+            }
+        }
+    }
+    zones {
+        security-zone trust {
+            host-inbound-traffic {
+                system-services {
+                    all;
+                }
+                protocols {
+                    all;
+                }
+            }
+            interfaces {
+                vlan.0;
+            }
+        }
+        security-zone untrust {
+            screen untrust-screen;
+            interfaces {
+                ge-0/0/0.0 {
+                    host-inbound-traffic {
+                        system-services {
+                            dhcp;
+                            tftp;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+poe {
+    interface all;
+}
+vlans {
+    vlan-trust {
+        vlan-id 3;
+        l3-interface vlan.0;
+    }
+}
+
+
+=== System Version ===
+
+Hostname: Vector-SRX210
+Model: srx210h-poe
+JUNOS Software Release [12.1X46-D86]
+
+
+=== Interface Status ===
+
+Interface               Admin Link Proto    Local                 Remote
+ge-0/0/0                up    up  
+ge-0/0/0.0              up    up   eth-switch
+gr-0/0/0                up    up  
+ip-0/0/0                up    up  
+lsq-0/0/0               up    up  
+lt-0/0/0                up    up  
+mt-0/0/0                up    up  
+sp-0/0/0                up    up  
+sp-0/0/0.0              up    up   inet    
+                                   inet6   
+sp-0/0/0.16383          up    up   inet     10.0.0.1            --> 10.0.0.16
+                                            10.0.0.6            --> 0/0
+                                            128.0.0.1           --> 128.0.1.16
+                                            128.0.0.6           --> 0/0
+ge-0/0/1                up    down
+ge-0/0/1.0              up    down eth-switch
+fe-0/0/2                up    down
+fe-0/0/2.0              up    down eth-switch
+fe-0/0/3                up    down
+fe-0/0/3.0              up    down eth-switch
+fe-0/0/4                up    down
+fe-0/0/4.0              up    down eth-switch
+fe-0/0/5                up    down
+fe-0/0/5.0              up    down eth-switch
+fe-0/0/6                up    down
+fe-0/0/6.0              up    down eth-switch
+fe-0/0/7                up    down
+fe-0/0/7.0              up    down eth-switch
+fxp2                    up    up  
+fxp2.0                  up    up   tnp      0x1             
+gre                     up    up  
+ipip                    up    up  
+irb                     up    up  
+lo0                     up    up  
+lo0.16384               up    up   inet     127.0.0.1           --> 0/0
+lo0.16385               up    up   inet     10.0.0.1            --> 0/0
+                                            10.0.0.16           --> 0/0
+                                            128.0.0.1           --> 0/0
+                                            128.0.0.4           --> 0/0
+                                            128.0.1.16          --> 0/0
+lo0.32768               up    up  
+lsi                     up    up  
+mtun                    up    up  
+pimd                    up    up  
+pime                    up    up  
+pp0                     up    up  
+ppd0                    up    up  
+ppe0                    up    up  
+st0                     up    up  
+tap                     up    up  
+vlan                    up    up  
+vlan.0                  up    up   inet     172.27.200.201/24
+
+
+=== Routing Summary ===
+
+Router ID: 172.27.200.201
+
+inet.0: 3 destinations, 3 routes (3 active, 0 holddown, 0 hidden)
+              Direct:      1 routes,      1 active
+               Local:      1 routes,      1 active
+              Static:      1 routes,      1 active
+
